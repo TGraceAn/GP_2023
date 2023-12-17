@@ -100,12 +100,15 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
 #     det_img = draw_masks(det_img, boxes, class_ids, mask_alpha)
 
     # Draw bounding boxes and labels of detections
+
     for class_id, box, score in zip(class_ids, boxes, scores):
+
         color = colors[class_id]
 
         draw_box(det_img, box, color)
 
         label = class_names[class_id]
+
         caption = f'{label} {int(score * 100)}%'
         
         draw_text(det_img, caption, box, color, font_size, text_thickness)
@@ -148,3 +151,14 @@ def draw_masks(image: np.ndarray, boxes: np.ndarray, classes: np.ndarray, mask_a
 
     return cv2.addWeighted(mask_img, mask_alpha, image, 1 - mask_alpha, 0)
 
+def final_object_dict(class_ids):
+    final_list = []
+    for class_id in class_ids:
+        label = class_names[class_id]
+
+        #add dict later
+        final_list.append(label)
+    
+    return final_list
+
+        
