@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
         cv2.imshow('Depth', depth_map)
         """
-        # cv2.imshow('Object', combined_img)
+        cv2.imshow('Object', combined_img)
         """
 
         if cv2.waitKey(1) == ord('o'):
@@ -52,6 +52,8 @@ if __name__ == '__main__':
             object_dict = final_object_dict(cls_idx)
             for i in range(len(object_dict)):
                 print(object_dict[i])
+                # TTS here?
+                
             print('------------------')
 
             # cv2.imshow('Object', combined_img)
