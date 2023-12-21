@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import numpy as np
 import onnxruntime as nxrun
-import os 
+import os
 import sys
 import cv2
 import numpy as np
@@ -190,7 +190,7 @@ class Dist_Depth(nn.Module):
         depth_map = depth_map[0,:,:,0]
         depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
 
-        return depth_map 
+        return depth_map
 
 
 
@@ -233,5 +233,10 @@ class Integration(nn.Module):
         depth_map = depth_map[0,:,:,0]
         depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
 
-        return bounding_box, scores, cls, depth_map   
+        return bounding_box, scores, cls, depth_map
     
+def cal_depth(depth_map):
+    # Take the mean of the 50 center pixels of the depth map size 480x640
+    depth_map = depth_map[215:265, 295:345]
+    depth = np.mean(depth_map)
+    return depth
