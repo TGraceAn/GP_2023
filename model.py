@@ -235,8 +235,8 @@ class Integration(nn.Module):
 
         return bounding_box, scores, cls, depth_map
     
-def cal_depth(depth_map):
-    # Take the mean of the 50 center pixels of the depth map size 480x640
-    depth_map = depth_map[215:265, 295:345]
-    depth = np.mean(depth_map)
+def cal_warning_depth(depth_map):
+    # Take the mean of the 63x47 center of the depth map 640x480
+    depth = depth_map[216:263, 288:335]
+    depth = np.mean(depth)
     return depth

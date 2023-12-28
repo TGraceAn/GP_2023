@@ -17,6 +17,15 @@ class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'tra
                'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
                'scissors', 'teddy bear', 'hair drier', 'toothbrush']
 
+class_names_2 = ['bed', 'night_stand', 'ottoman', 'dresser', 'lamp', 'pillow',
+                'mirror', 'chair', 'sofa', 'monitor', 'cabinet', 'sofa_chair',
+                'table', 'computer', 'door', 'tv', 'box', 'bottle', 'book',
+                'coffee_table', 'laptop', 'shelf', 'plant', 'desk', 'endtable',
+                'fridge', 'recycle_bin', 'garbage_bin', 'bench', 'bookshelf',
+                'printer', 'counter', 'toilet', 'sink', 'towel', 'vanity',
+                'painting', 'drawer', 'keyboard', 'paper', 'books', 'whiteboard',
+                'picture', 'cpu', 'stool', 'curtain', 'cloth', 'person', 'stair']
+
 # Create a list of colors for each class where each color is a tuple of 3 integer values
 rng = np.random.default_rng(3)
 colors = rng.uniform(0, 255, size=(len(class_names), 3))
