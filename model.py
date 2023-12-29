@@ -11,14 +11,14 @@ import numpy as np
 from utils.utils import multiclass_nms, xywh2xyxy
 
 """
-Object dection model
+Object detection model
 
 """
-Object_SESS = nxrun.InferenceSession('model_instances/object_detection/yolov8m.onnx', providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
+# Object_SESS = nxrun.InferenceSession('model_instances/object_detection/yolov8m_best.onnx', providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
 
 
 class ObjectDetection:
-    def __init__(self, path, conf_thres=0.25, iou_thres=0.5):
+    def __init__(self, path, conf_thres=0.25, iou_thres=0.7):
         self.conf_threshold = conf_thres
         self.iou_threshold = iou_thres
 
@@ -234,6 +234,10 @@ class Integration(nn.Module):
         depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
 
         return bounding_box, scores, cls, depth_map
+    
+
+
+# Model calculation functions
     
 def cal_warning_depth(depth_map):
     # Take the mean of the 63x47 center of the depth map 640x480

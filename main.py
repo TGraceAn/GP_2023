@@ -1,6 +1,12 @@
 from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run, cal_warning_depth, cal_depth
 import cv2
-from utils.utils import draw_detections, final_object_dict
+
+# from utils.utils import draw_detections, final_object_dict
+from utils.utils_2 import draw_detections, final_object_dict
+
+# from utils import utils as u1
+# from utils import utils_2 as u2
+
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -8,7 +14,9 @@ import pyttsx3
 from nicolai import depth_midas
 
 # main_model = Dist_Depth()
-object_model = ObjectDetection('model_instances/object_detection/yolov8m.onnx')
+
+object_model = ObjectDetection('model_instances/object_detection/yolov8m_best.onnx')
+object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m.onnx')
 
 # start_time = time.time()
 
@@ -108,31 +116,28 @@ if __name__ == '__main__':
 
 
         if cv2.waitKey(1) == ord('o'):
-            # shape = (480,640,3)
-            # frame = cv2.resize(frame, (shape[1] , shape[0]))
-            # frame = frame/255
-            bounding_box, scores, cls_idx = object_onnx_run(frame, object_model)
+            # engine.say('Processing')
+            # engine.runAndWait()
+
+            bounding_box_2, scores_2, cls_idx_2 = object_onnx_run(frame, object_model_2)
+
+            # object_dict = u1.final_object_dict(cls_idx)
+            object_dict_2 = final_object_dict(cls_idx_2)
 
 
-            # print(bounding_box)
+            object_dist_2 = cal_depth(bounding_box_2, depth_map)
 
-            
-
-            combined_img = draw_detections(frame, bounding_box, scores, cls_idx)
-            combined_img_depth = draw_detections(depth_map, bounding_box, scores, cls_idx)
-            
-
-            object_dict = final_object_dict(cls_idx)
-            object_dist = cal_depth(bounding_box, depth_map)
+            combined_img = draw_detections(frame, bounding_box_2, scores_2, cls_idx_2)
+            combined_img_depth = draw_detections(depth_map, bounding_box_2, scores_2, cls_idx_2)
 
             cv2.imshow('Object', combined_img)
             cv2.imshow('Depth_object', combined_img_depth)
-
-            for i in range(len(object_dict)):
-                print(f'{object_dict[i]} at: {object_dist[i]}')
+            
+            for i in range(len(object_dict_2)):
+                print(f'{object_dict_2[i]} at: {object_dist_2[i]}')
 
                 # # Distance calculation here?
-                # engine.say(object_dict[i])
+                # engine.say(object_dict_2[i])
                 # engine.runAndWait()
 
             print('------------------')
