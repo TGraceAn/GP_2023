@@ -122,6 +122,7 @@ if __name__ == '__main__':
 
             bounding_box, scores, cls_idx = object_onnx_run(frame, object_model)
 
+
             # print(bounding_box)
 
             combined_img = draw_detections(frame, bounding_box, scores, cls_idx)
@@ -130,12 +131,15 @@ if __name__ == '__main__':
 
             cv2.imshow('Object', combined_img)
 
+            
+
             for i in range(len(object_dict)):
                 print(object_dict[i])
                 # Distance calculation here?
                 engine.say(object_dict[i])
                 engine.runAndWait()
                 # TTS here?
+
             print('------------------')
 
                 # cv2.imshow('Object', combined_img)

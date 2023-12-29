@@ -166,6 +166,7 @@ def final_object_dict(class_ids):
         label = class_names[class_id]
 
         #add dict later
+        
         final_list.append(label)
     
     return final_list

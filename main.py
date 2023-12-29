@@ -1,4 +1,4 @@
-from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run, cal_warning_depth
+from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run, cal_warning_depth, cal_depth
 import cv2
 from utils.utils import draw_detections, final_object_dict
 import matplotlib.pyplot as plt
@@ -97,14 +97,10 @@ if __name__ == '__main__':
         bottom_mid = frame[320:480, 213:426]
         #bottom right
         bottom_right = frame[320:480, 426:640]
-        
-        cv2.imshow('top left', top_left)
-
-        
 
         # TTS
-        DEPTH_THRESHOLD = 200
-        
+
+        # DEPTH_THRESHOLD = 200
         # if depth > DEPTH_THRESHOLD:
         #     # print('Object in front of you!')
         #     engine.say('Object in front of you!')
@@ -115,23 +111,30 @@ if __name__ == '__main__':
             # shape = (480,640,3)
             # frame = cv2.resize(frame, (shape[1] , shape[0]))
             # frame = frame/255
-
             bounding_box, scores, cls_idx = object_onnx_run(frame, object_model)
 
-            print(bounding_box)
+
+            # print(bounding_box)
+
+            
 
             combined_img = draw_detections(frame, bounding_box, scores, cls_idx)
+            combined_img_depth = draw_detections(depth_map, bounding_box, scores, cls_idx)
+            
 
             object_dict = final_object_dict(cls_idx)
+            object_dist = cal_depth(bounding_box, depth_map)
 
             cv2.imshow('Object', combined_img)
+            cv2.imshow('Depth_object', combined_img_depth)
 
             for i in range(len(object_dict)):
-                print(object_dict[i])
-                # Distance calculation here?
-                engine.say(object_dict[i])
-                engine.runAndWait()
-                # TTS here?
+                print(f'{object_dict[i]} at: {object_dist[i]}')
+
+                # # Distance calculation here?
+                # engine.say(object_dict[i])
+                # engine.runAndWait()
+
             print('------------------')
 
             # cv2.imshow('Object', combined_img)
