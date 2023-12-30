@@ -171,4 +171,97 @@ def final_object_dict(class_ids):
     
     return final_list
 
+# def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
+#     det_img = image.copy()
+#     img_height, img_width = image.shape[:2]
+#     font_size = min([img_height, img_width]) * 0.0006
+#     text_thickness = int(min([img_height, img_width]) * 0.001)
+
+# #    Draw masks
+# #     det_img = draw_masks(det_img, boxes, class_ids, mask_alpha)
+
+#     # Draw bounding boxes and labels of detections
+
+#     for class_id, box, score in zip(class_ids, boxes, scores):
+
+#         color = colors[class_id]
+
+#         draw_box(det_img, box, color)
+
+#         label = class_names[class_id]
+
+#         caption = f'{label} {int(score * 100)}%'
+
+#         #use for positional data and depth data later
+#         # caption = f'{label} {int(score * 100)}%: {depth} {object_position}'
         
+#         draw_text(det_img, caption, box, color, font_size, text_thickness)
+
+#     return det_img
+
+
+# Model calculation functions
+    
+def cal_warning_depth(depth_map):
+    # Take the mean of the 63x47 center of the depth map 640x480
+    depth = depth_map[216:263, 288:335]
+    depth = np.mean(depth)
+    return depth
+
+def cal_depth(bounding_boxes, depth_map):
+    depth = []
+    for i in range(len(bounding_boxes)):
+        box = bounding_boxes[i]
+        box = box.astype(int)
+        depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
+        depth.append(depth_value)
+    return depth
+        
+def get_iob(bb1, based_box):
+    # determine the coordinates of the intersection rectangle
+    x_left = max(bb1[0], based_box[0])
+    y_top = max(bb1[1], based_box[1])
+    x_right = min(bb1[2], based_box[2])
+    y_bottom = min(bb1[3], based_box[3])
+
+    if x_right < x_left or y_bottom < y_top:
+        return 0.0
+
+    # The intersection of two axis-aligned bounding boxes is always an
+    # axis-aligned bounding box
+    intersection_area = (x_right - x_left) * (y_bottom - y_top)
+    based_box_area = (based_box[2] - based_box[0]) * (based_box[3] - based_box[1])
+    object_area = (bb1[2] - bb1[0]) * (bb1[3] - bb1[1])
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    if object_area < based_box_area:
+        iob = intersection_area / object_area
+    else:
+        iob = intersection_area / based_box_area
+
+    return iob
+
+#top left xyxy of frame 640x480
+top_left_box = np.array([0,0,213,160])
+top_mid_box = np.array([213,0,426,160])
+top_right_box = np.array([426,0,640,160])
+mid_left_box = np.array([0,160,213,320])
+mid_mid_box = np.array([213,160,426,320])
+mid_right_box = np.array([426,160,640,320])
+bottom_left_box = np.array([0,320,213,480])
+bottom_mid_box = np.array([213,320,426,480])
+bottom_right_box = np.array([426,320,640,480])
+
+def object_position_find(bounding_box):
+    object_position = []
+    for i in range(len(bounding_box)):
+        box = bounding_box[i]
+        box = box.astype(int)
+        print(get_iob(box, mid_mid_box))
+        if get_iob(box, mid_mid_box) > 0.5 or get_iob(box, bottom_mid_box) > 0.5:
+            object_position.append('In front of you')
+        else:
+            object_position.append('Not calculated')
+    return object_position

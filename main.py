@@ -1,8 +1,8 @@
-from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run, cal_warning_depth, cal_depth
+from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run
 import cv2
 
 # from utils.utils import draw_detections, final_object_dict
-from utils.utils_2 import draw_detections, final_object_dict
+from utils.utils_2 import draw_detections, final_object_dict, cal_warning_depth, cal_depth, object_position_find
 
 # from utils import utils as u1
 # from utils import utils_2 as u2
@@ -83,28 +83,30 @@ if __name__ == '__main__':
         """
         depth = cal_warning_depth(depth_map)
         # print(depth)
-
-        iou_threshold = 'SMTH'
         
-        #dividing frame in to 9 parts, top left, top mid, top right, mid left, mid mid, mid right, bottom left, bottom mid, bottom right
-        #top left
-        top_left = frame[0:160, 0:213]
-        #top mid
-        top_mid = frame[0:160, 213:426]
-        #top right
-        top_right = frame[0:160, 426:640]
-        #mid left
-        mid_left = frame[160:320, 0:213]
-        #mid mid
-        mid_mid = frame[160:320, 213:426]
-        #mid right
-        mid_right = frame[160:320, 426:640]
-        #bottom left
-        bottom_left = frame[320:480, 0:213]
-        #bottom mid
-        bottom_mid = frame[320:480, 213:426]
-        #bottom right
-        bottom_right = frame[320:480, 426:640]
+        #top left xyxy of frame 640x480
+        # #Testing
+        # top_left_box = np.array([[0,0,213,160]])
+        # top_mid_box = np.array([[213,0,426,160]])
+        # top_right_box = np.array([[426,0,640,160]])
+        # mid_left_box = np.array([[0,160,213,320]])
+        # mid_mid_box = np.array([[213,160,426,320]])
+        # mid_right_box = np.array([[426,160,640,320]])
+        # bottom_left_box = np.array([[0,320,213,480]])
+        # bottom_mid_box = np.array([[213,320,426,480]])
+        # bottom_right_box = np.array([[426,320,640,480]])
+
+        # combined_img_test = draw_detections(frame, top_left_box, [0.12], [0]) #Dummy values
+        # combined_img_test = draw_detections(combined_img_test, top_mid_box, [0.12], [0]) #Dummy values
+        # combined_img_test = draw_detections(combined_img_test, top_right_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_left_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_mid_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_right_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_left_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_mid_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_right_box, [0.12], [0])
+
+        # cv2.imshow('Test', combined_img_test)
 
         # TTS
 
@@ -120,12 +122,16 @@ if __name__ == '__main__':
             # engine.runAndWait()
 
             bounding_box_2, scores_2, cls_idx_2 = object_onnx_run(frame, object_model_2)
+            object_position = object_position_find(bounding_box_2)
 
             # object_dict = u1.final_object_dict(cls_idx)
             object_dict_2 = final_object_dict(cls_idx_2)
 
+            # Testing position of object
+            # If object's bounding box fits 50% of the center frame then consider it as the object in front of the user
 
             object_dist_2 = cal_depth(bounding_box_2, depth_map)
+
 
             combined_img = draw_detections(frame, bounding_box_2, scores_2, cls_idx_2)
             combined_img_depth = draw_detections(depth_map, bounding_box_2, scores_2, cls_idx_2)
@@ -134,7 +140,7 @@ if __name__ == '__main__':
             cv2.imshow('Depth_object', combined_img_depth)
             
             for i in range(len(object_dict_2)):
-                print(f'{object_dict_2[i]} at: {object_dist_2[i]}')
+                print(f'{object_dict_2[i]} at: {object_dist_2[i]}: {object_position[i]}')
 
                 # # Distance calculation here?
                 # engine.say(object_dict_2[i])

@@ -237,19 +237,3 @@ class Integration(nn.Module):
     
 
 
-# Model calculation functions
-    
-def cal_warning_depth(depth_map):
-    # Take the mean of the 63x47 center of the depth map 640x480
-    depth = depth_map[216:263, 288:335]
-    depth = np.mean(depth)
-    return depth
-
-def cal_depth(bounding_boxes, depth_map):
-    depth = []
-    for i in range(len(bounding_boxes)):
-        box = bounding_boxes[i]
-        box = box.astype(int)
-        depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
-        depth.append(depth_value)
-    return depth
