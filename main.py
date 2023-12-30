@@ -20,6 +20,8 @@ object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m.onnx'
 
 # start_time = time.time()
 
+# Front camera is flipped
+
 if __name__ == '__main__':
     # num_frame = 0
     engine = pyttsx3.init()
@@ -120,7 +122,7 @@ if __name__ == '__main__':
         if cv2.waitKey(1) == ord('o'):
             # engine.say('Processing')
             # engine.runAndWait()
-
+            
             bounding_box_2, scores_2, cls_idx_2 = object_onnx_run(frame, object_model_2)
             object_position = object_position_find(bounding_box_2)
 

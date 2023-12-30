@@ -262,6 +262,17 @@ def object_position_find(bounding_box):
         print(get_iob(box, mid_mid_box))
         if get_iob(box, mid_mid_box) > 0.5 or get_iob(box, bottom_mid_box) > 0.5:
             object_position.append('In front of you')
+        elif get_iob(box, top_left_box) > 0.5:
+            object_position.append('Top left')
+        elif get_iob(box, top_mid_box) > 0.5:
+            object_position.append('Top mid')
+        elif get_iob(box, top_right_box) > 0.5:
+            object_position.append('Top right')
+        elif get_iob(box, mid_left_box) > 0.5 or get_iob(box, bottom_left_box) > 0.5:
+            object_position.append('Left')
+        elif get_iob(box, mid_right_box) > 0.5 or get_iob(box, bottom_right_box) > 0.5:
+            object_position.append('Right')
         else:
-            object_position.append('Not calculated')
+            object_position.append('Unknown')
+    
     return object_position
