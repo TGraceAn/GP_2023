@@ -273,6 +273,22 @@ def object_position_find(bounding_box):
         elif get_iob(box, mid_right_box) > 0.5 or get_iob(box, bottom_right_box) > 0.5:
             object_position.append('Right')
         else:
-            object_position.append('Unknown')
-    
+            # Get box center to decide
+            box_center_x = (box[0]+box[2])/2
+            box_center_y = (box[1]+box[3])/2
+            if box_center_x < 213 and box_center_y < 160:
+                object_position.append('Top left')
+            elif box_center_x > 213 and box_center_x < 426 and box_center_y < 160:
+                object_position.append('Top mid')
+            elif box_center_x > 426 and box_center_y < 160:
+                object_position.append('Top right')
+            elif box_center_x < 213 and box_center_y > 160:
+                object_position.append('Left')
+            elif box_center_x > 213 and box_center_x < 426 and box_center_y > 160:
+                object_position.append('Mid')
+            elif box_center_x > 426 and box_center_y > 160:
+                object_position.append('Right')
+            else:
+                object_position.append('Unknown')
+                
     return object_position

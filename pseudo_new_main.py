@@ -106,6 +106,30 @@ if __name__ == '__main__':
         #bottom right
         bottom_right = frame[320:480, 426:640]
 
+        #top left xyxy of frame 640x480
+        # #Testing
+        # top_left_box = np.array([[0,0,213,160]])
+        # top_mid_box = np.array([[213,0,426,160]])
+        # top_right_box = np.array([[426,0,640,160]])
+        # mid_left_box = np.array([[0,160,213,320]])
+        # mid_mid_box = np.array([[213,160,426,320]])
+        # mid_right_box = np.array([[426,160,640,320]])
+        # bottom_left_box = np.array([[0,320,213,480]])
+        # bottom_mid_box = np.array([[213,320,426,480]])
+        # bottom_right_box = np.array([[426,320,640,480]])
+
+        # combined_img_test = draw_detections(frame, top_left_box, [0.12], [0]) #Dummy values
+        # combined_img_test = draw_detections(combined_img_test, top_mid_box, [0.12], [0]) #Dummy values
+        # combined_img_test = draw_detections(combined_img_test, top_right_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_left_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_mid_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, mid_right_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_left_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_mid_box, [0.12], [0])
+        # combined_img_test = draw_detections(combined_img_test, bottom_right_box, [0.12], [0])
+
+        # cv2.imshow('Test', combined_img_test)
+
         # TTS
 
         # DEPTH_THRESHOLD = 200
@@ -113,6 +137,7 @@ if __name__ == '__main__':
         #     # print('Object in front of you!')
         #     engine.say('Object in front of you!')
         #     engine.runAndWait()
+
 
 
         if cv2.waitKey(1) == ord('o'):
