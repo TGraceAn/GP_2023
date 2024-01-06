@@ -227,15 +227,10 @@ def get_iob(bb1, based_box):
     if x_right < x_left or y_bottom < y_top:
         return 0.0
 
-    # The intersection of two axis-aligned bounding boxes is always an
-    # axis-aligned bounding box
     intersection_area = (x_right - x_left) * (y_bottom - y_top)
     based_box_area = (based_box[2] - based_box[0]) * (based_box[3] - based_box[1])
     object_area = (bb1[2] - bb1[0]) * (bb1[3] - bb1[1])
 
-    # compute the intersection over union by taking the intersection
-    # area and dividing it by the sum of prediction + ground-truth
-    # areas - the interesection area
     if object_area < based_box_area:
         iob = intersection_area / object_area
     else:

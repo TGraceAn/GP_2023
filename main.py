@@ -1,4 +1,4 @@
-from model import ObjectDetection, Dist_Depth, depth_onnx_run, object_onnx_run
+from model import ObjectDetection, object_onnx_run
 import cv2
 
 # from utils.utils import draw_detections, final_object_dict
@@ -44,15 +44,6 @@ if __name__ == '__main__':
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
-
-
-        # Preprocess the image (use for old depth model)
-        
-        # Old depth model
-        # shape = (480,640,3)
-        # frame = cv2.resize(frame, (shape[1] , shape[0]))
-        # frame = frame/255
-        # depth_map = depth_onnx_run(frame)
         
         # New depth model
         depth_map = depth_midas(frame)
