@@ -238,7 +238,8 @@ def get_iob(bb1, based_box):
 
     return iob
 
-#top left xyxy of frame 640x480
+# Position boxes
+
 top_left_box = np.array([0,0,213,160])
 top_mid_box = np.array([213,0,426,160])
 top_right_box = np.array([426,0,640,160])
