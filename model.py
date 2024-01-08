@@ -231,6 +231,10 @@ class Integration(nn.Module):
         depth_map = self.__onnx_run__(inp)
 
         depth_map = depth_map[0,:,:,0]
+
+        
+
+        #normalization
         depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
 
         return bounding_box, scores, cls, depth_map

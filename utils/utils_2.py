@@ -26,9 +26,15 @@ class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'tra
 #                 'painting', 'drawer', 'keyboard', 'paper', 'books', 'whiteboard',
 #                 'picture', 'cpu', 'stool', 'curtain', 'cloth', 'person', 'stair']
 
+class_names_3 =['bed', 'night_stand', 'ottoman', 'dresser', 'lamp', 'pillow', 'mirror', 'chair', 'sofa','monitor','cabinet',
+                'table', 'computer', 'door', 'tv', 'box', 'bottle', 'book', 'laptop', 'shelf', 'plant', 'desk', 'fridge',
+                'recycle_bin', 'garbage_bin', 'bench', 'bookshelf', 'printer', 'counter', 'toilet', 'sink', 'towel',
+                'vanity', 'painting', 'drawer', 'keyboard', 'paper', 'whiteboard', 'picture', 'cpu', 'stool', 'curtain','cloth',
+                'person', 'stair']
+
 # Create a list of colors for each class where each color is a tuple of 3 integer values
 rng = np.random.default_rng(3)
-colors = rng.uniform(0, 255, size=(len(class_names), 3))
+colors = rng.uniform(0, 255, size=(len(class_names_3), 3))
 
 
 def nms(boxes, scores, iou_threshold):
@@ -116,7 +122,7 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
 
         draw_box(det_img, box, color)
 
-        label = class_names[class_id]
+        label = class_names_3[class_id]
 
         caption = f'{label} {int(score * 100)}%'
         
@@ -163,7 +169,7 @@ def draw_masks(image: np.ndarray, boxes: np.ndarray, classes: np.ndarray, mask_a
 def final_object_dict(class_ids):
     final_list = []
     for class_id in class_ids:
-        label = class_names[class_id]
+        label = class_names_3[class_id]
 
         #add dict later
 
@@ -258,33 +264,35 @@ def object_position_find(bounding_box):
         print(get_iob(box, mid_mid_box))
         if get_iob(box, mid_mid_box) > 0.5 or get_iob(box, bottom_mid_box) > 0.5:
             object_position.append('In front of you')
+        elif get_iob(box, mid_left_box) > 0.5 or get_iob(box, bottom_left_box) > 0.5:
+            object_position.append('Left')
+        elif get_iob(box, mid_right_box) > 0.5 or get_iob(box, bottom_right_box) > 0.5:
+            object_position.append('Right')
         elif get_iob(box, top_left_box) > 0.5:
             object_position.append('Top left')
         elif get_iob(box, top_mid_box) > 0.5:
             object_position.append('Top mid')
         elif get_iob(box, top_right_box) > 0.5:
             object_position.append('Top right')
-        elif get_iob(box, mid_left_box) > 0.5 or get_iob(box, bottom_left_box) > 0.5:
-            object_position.append('Left')
-        elif get_iob(box, mid_right_box) > 0.5 or get_iob(box, bottom_right_box) > 0.5:
-            object_position.append('Right')
         else:
             # Get box center to decide
             box_center_x = (box[0]+box[2])/2
             box_center_y = (box[1]+box[3])/2
-            if box_center_x < 213 and box_center_y < 160:
-                object_position.append('Top left')
-            elif box_center_x > 213 and box_center_x < 426 and box_center_y < 160:
-                object_position.append('Top mid')
-            elif box_center_x > 426 and box_center_y < 160:
-                object_position.append('Top right')
-            elif box_center_x < 213 and box_center_y > 160:
+            if box_center_x < 213 and box_center_y > 160:
                 object_position.append('Left')
             elif box_center_x > 213 and box_center_x < 426 and box_center_y > 160:
                 object_position.append('Mid')
             elif box_center_x > 426 and box_center_y > 160:
                 object_position.append('Right')
+            elif box_center_x < 213 and box_center_y < 160:
+                object_position.append('Top left')
+            elif box_center_x > 213 and box_center_x < 426 and box_center_y < 160:
+                object_position.append('Top mid')
+            elif box_center_x > 426 and box_center_y < 160:
+                object_position.append('Top right')
             else:
                 object_position.append('Unknown')
                 
     return object_position
+
+# def object_depth

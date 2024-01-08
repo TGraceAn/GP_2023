@@ -16,7 +16,7 @@ from nicolai import depth_midas
 # main_model = Dist_Depth()
 
 object_model = ObjectDetection('model_instances/object_detection/yolov8m_best.onnx')
-object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m.onnx')
+object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m_weight.onnx')
 
 # start_time = time.time()
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             break
         
         # New depth model
-        depth_map = depth_midas(frame)
+        depth_map, original_depth_map = depth_midas(frame)
 
         # Preprocess to display orginal image
         shape = (480,640,3)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             # Testing position of object
             # If object's bounding box fits 50% of the center frame then consider it as the object in front of the user
 
-            object_dist_2 = cal_depth(bounding_box_2, depth_map)
+            object_dist_2 = cal_depth(bounding_box_2, original_depth_map)
 
 
             combined_img = draw_detections(frame, bounding_box_2, scores_2, cls_idx_2)

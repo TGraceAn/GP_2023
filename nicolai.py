@@ -97,6 +97,7 @@ else:
 #         break
 
 # cap.release()
+    
 depth_shape = (480,640)
 
 def depth_midas(img):
@@ -117,10 +118,26 @@ def depth_midas(img):
         ).squeeze()
 
         depth_map = prediction.cpu().numpy()
+        orginal_depth_map = depth_map.copy()
+
+        # Take depth_map center box
+        depth_center = depth_map[213:426, 160:320]
+        # calculate_depth = np.mean(depth_center)
+        max_depth = np.max(depth_center)
+        median_depth = np.median(depth_center)
+        min_depth = np.min(depth_center)
+
+        max_depth_overall = np.max(depth_map)
+
         depth_map = cv2.normalize(depth_map, None, 0, 1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_64F)
 
 
+        print(max_depth_overall, max_depth, min_depth, median_depth)
+        
+        # print(calculate_depth)
+
+        # normalization
         depth_map = (depth_map*255).astype(np.uint8)
         depth_map = cv2.applyColorMap(depth_map , cv2.COLORMAP_MAGMA)
         
-        return depth_map
+        return depth_map, orginal_depth_map
