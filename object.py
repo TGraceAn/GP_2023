@@ -2,6 +2,7 @@ from model import ObjectDetection, object_onnx_run
 from utils.utils_2 import draw_detections
 import cv2
 
+
 object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m_weight.onnx')
 
 image_path = 'images/image_27.jpg'

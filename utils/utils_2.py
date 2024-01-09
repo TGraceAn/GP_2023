@@ -216,12 +216,24 @@ def cal_warning_depth(depth_map):
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
+    depth_median = []
+    depth_max = []
+    depth_min = []
+
     for i in range(len(bounding_boxes)):
         box = bounding_boxes[i]
         box = box.astype(int)
         depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
+
+        depth_median_value = np.median(depth_map[box[1]:box[3], box[0]:box[2]])
+        depth_max_value = np.max(depth_map[box[1]:box[3], box[0]:box[2]])
+
+        depth_median.append(depth_median_value)
+        depth_max.append(depth_max_value)
+        depth_min.append(np.min(depth_map[box[1]:box[3], box[0]:box[2]]))
+
         depth.append(depth_value)
-    return depth
+    return depth, depth_median, depth_max, depth_min
         
 def get_iob(bb1, based_box):
     # determine the coordinates of the intersection rectangle

@@ -120,19 +120,21 @@ def depth_midas(img):
         depth_map = prediction.cpu().numpy()
         orginal_depth_map = depth_map.copy()
 
+        # Get center pixel value
+        center = depth_map[240, 320]
         # Take depth_map center box
         depth_center = depth_map[213:426, 160:320]
         # calculate_depth = np.mean(depth_center)
         max_depth = np.max(depth_center)
+        mean_depth = np.mean(depth_center)
         median_depth = np.median(depth_center)
-        min_depth = np.min(depth_center)
 
-        max_depth_overall = np.max(depth_map)
+        min_depth = np.min(depth_center)
 
         depth_map = cv2.normalize(depth_map, None, 0, 1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_64F)
 
 
-        print(max_depth_overall, max_depth, min_depth, median_depth)
+        print(f"Max: {max_depth}, Mean: {mean_depth}, Min: {min_depth}, Median: {median_depth}, Center: {center}")
         
         # print(calculate_depth)
 

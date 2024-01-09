@@ -98,7 +98,7 @@ if __name__ == '__main__':
             # Testing position of object
             # If object's bounding box fits 50% of the center frame then consider it as the object in front of the user
 
-            object_dist_2, object_dist_median, object_dist_max, object_dist_min = cal_depth(bounding_box_2, original_depth_map)
+            object_dist_2 = cal_depth(bounding_box_2, original_depth_map)
 
 
             combined_img = draw_detections(frame, bounding_box_2, scores_2, cls_idx_2)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
             cv2.imshow('Depth_object', combined_img_depth)
             
             for i in range(len(object_dict_2)):
-                print(f'{object_dict_2[i]} at: mean {object_dist_2[i]}, median {object_dist_median[i]}, max {object_dist_max[i]}, min {object_dist_min[i]}: {object_position[i]}')
+                print(f'{object_dict_2[i]} at: {object_dist_2[i]}: {object_position[i]}')
 
                 # # Distance calculation here?
                 # engine.say(object_dict_2[i])
