@@ -152,6 +152,7 @@ def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple = (255
 
 
 # USELESS FOR NOW
+
 def draw_masks(image: np.ndarray, boxes: np.ndarray, classes: np.ndarray, mask_alpha: float = 0.3) -> np.ndarray:
     mask_img = image.copy()
 
@@ -170,9 +171,6 @@ def final_object_dict(class_ids):
     final_list = []
     for class_id in class_ids:
         label = class_names_3[class_id]
-
-        #add dict later
-
         final_list.append(label)
     
     return final_list
@@ -209,10 +207,17 @@ def final_object_dict(class_ids):
 # Model calculation functions
     
 def cal_warning_depth(depth_map):
-    # Take the mean of the 63x47 center of the depth map 640x480
-    depth = depth_map[216:263, 288:335]
-    depth = np.mean(depth)
-    return depth
+    
+    depth_top_center = depth_map[0:160, 266:373]
+    depth_mid_center = depth_map[160:320, 266:373]
+    depth_bottom_center = depth_map[320:480, 266:373]
+    depth_value_top = np.mean(depth_top_center)
+    depth_value_mid = np.mean(depth_mid_center)
+    depth_value_bottom = np.mean(depth_bottom_center)
+
+    print(depth_value_top, depth_value_mid, depth_value_bottom)
+
+    return depth_value_top, depth_value_mid, depth_value_bottom
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
@@ -223,6 +228,10 @@ def cal_depth(bounding_boxes, depth_map):
     for i in range(len(bounding_boxes)):
         box = bounding_boxes[i]
         box = box.astype(int)
+        box_center = [(box[0]+box[2])//2, (box[1]+box[3])//2]
+        k = 3
+        box = [box_center[0]-k, box_center[1]-k, box_center[0]+k, box_center[1]+k]
+
         depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
 
         depth_median_value = np.median(depth_map[box[1]:box[3], box[0]:box[2]])
@@ -273,38 +282,173 @@ def object_position_find(bounding_box):
     for i in range(len(bounding_box)):
         box = bounding_box[i]
         box = box.astype(int)
-        print(get_iob(box, mid_mid_box))
         if get_iob(box, mid_mid_box) > 0.5 or get_iob(box, bottom_mid_box) > 0.5:
-            object_position.append('In front of you')
-        elif get_iob(box, mid_left_box) > 0.5 or get_iob(box, bottom_left_box) > 0.5:
+            object_position.append('In front')
+        elif get_iob(box, mid_left_box) > 0.5:
             object_position.append('Left')
-        elif get_iob(box, mid_right_box) > 0.5 or get_iob(box, bottom_right_box) > 0.5:
+        elif get_iob(box, bottom_left_box) > 0.5:
+            object_position.append('Bottom left')
+        elif get_iob(box, mid_right_box) > 0.5:
             object_position.append('Right')
-        elif get_iob(box, top_left_box) > 0.5:
-            object_position.append('Top left')
+        elif get_iob(box, bottom_right_box) > 0.5:
+            object_position.append('Bottome Right')
         elif get_iob(box, top_mid_box) > 0.5:
             object_position.append('Top mid')
+        elif get_iob(box, top_left_box) > 0.5:
+            object_position.append('Top left')
         elif get_iob(box, top_right_box) > 0.5:
             object_position.append('Top right')
         else:
             # Get box center to decide
-            box_center_x = (box[0]+box[2])/2
-            box_center_y = (box[1]+box[3])/2
-            if box_center_x < 213 and box_center_y > 160:
+            box_center_x = (box[0]+box[2])//2
+            box_center_y = (box[1]+box[3])//2
+            if box_center_x < 213 and box_center_y >= 160 and box_center_y < 320:
                 object_position.append('Left')
-            elif box_center_x > 213 and box_center_x < 426 and box_center_y > 160:
-                object_position.append('Mid')
-            elif box_center_x > 426 and box_center_y > 160:
+            elif box_center_x < 213 and box_center_y >= 320:
+                object_position.append('Bottom left')
+            elif box_center_x >= 213 and box_center_x < 426 and box_center_y >= 160:
+                object_position.append('In front')
+            elif box_center_x >= 213 and box_center_x < 426 and box_center_y >= 320:
+                object_position.append('Bottom mid')
+            elif box_center_x >= 426 and box_center_y >= 160 and box_center_y < 320:
                 object_position.append('Right')
+            elif box_center_x >= 426 and box_center_y >= 320:
+                object_position.append('Bottom right')
+            elif box_center_x >= 213 and box_center_x < 426 and box_center_y < 160:
+                object_position.append('Top mid')
             elif box_center_x < 213 and box_center_y < 160:
                 object_position.append('Top left')
-            elif box_center_x > 213 and box_center_x < 426 and box_center_y < 160:
-                object_position.append('Top mid')
-            elif box_center_x > 426 and box_center_y < 160:
+            elif box_center_x >= 426 and box_center_y < 160:
                 object_position.append('Top right')
             else:
                 object_position.append('Unknown')
                 
     return object_position
 
-# def object_depth
+
+#Use for drawing the frame division
+depth_center = np.array([320,240])
+
+def object_position_find_2(bounding_box):
+    #set depth center as the orgin
+    object_position = []
+    #using sin cos to find the angle of the object
+    for i in range(len(bounding_box)):
+        box = bounding_box[i]
+        box = box.astype(int)
+        box_center_x = (box[0]+box[2])//2
+        box_center_y = (box[1]+box[3])//2
+        #find the angle of the object
+        angle = np.arctan2(box_center_y-depth_center[1],box_center_x-depth_center[0])
+        #convert the angle to degree
+        angle = np.degrees(angle)
+        #print(angle)
+        if angle > 45 and angle < 135:
+            object_position.append('Top')
+        elif angle > 135 or angle < -135:
+            object_position.append('Left')
+        elif angle > -135 and angle < -45:
+            object_position.append('Bottom')
+        elif angle > -45 and angle < 45:
+            object_position.append('Right')
+        else:
+            object_position.append('Unknown')
+    
+    return object_position
+
+def draw_frame_division(img):
+    #draw box for the frame division with red color
+    img = cv2.rectangle(img,(0,0),(213,160),(0,0,255),2)
+    img = cv2.rectangle(img,(213,0),(426,160),(0,0,255),2)
+    img = cv2.rectangle(img,(426,0),(640,160),(0,0,255),2)
+    img = cv2.rectangle(img,(0,160),(213,320),(0,0,255),2)
+    img = cv2.rectangle(img,(213,160),(426,320),(0,0,255),2)
+    img = cv2.rectangle(img,(426,160),(640,320),(0,0,255),2)
+    img = cv2.rectangle(img,(0,320),(213,480),(0,0,255),2)
+    img = cv2.rectangle(img,(213,320),(426,480),(0,0,255),2)
+    img = cv2.rectangle(img,(426,320),(640,480),(0,0,255),2)
+
+    #draw text for each box
+    img = cv2.putText(img,'Top left',(0,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Top mid',(213,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Top right',(426,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid left',(0,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid mid',(213,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid right',(426,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom left',(0,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom mid',(213,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom right',(426,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    return img
+
+def draw_position_line(img):
+    #draw line from top left to bottom right of the square with the center being the frame center
+    img = cv2.line(img,(80,0),(560,480),(0,0,255),2)
+    #draw line from top right to bottom left of the square with the center being the frame center
+    img = cv2.line(img,(560,0),(80,480),(0,0,255),2)
+    #write top, bottom, left, right text
+    img = cv2.putText(img,'Top',(320,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom',(320,465),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Left',(0,240),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Right',(600,240),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    return img
+
+def box_center(bounding_box):
+    box_center = []
+    for i in range(len(bounding_box)):
+        box = bounding_box[i]
+        # box = box.astype(int)
+        box_center_x = (box[0]+box[2])//2
+        box_center_y = (box[1]+box[3])//2
+        box_center.append([box_center_x,box_center_y])
+    return box_center
+
+def draw_position_line_2(img):
+    centers = [[50,332]]
+    np.array(centers)
+    #draw vertical and horizontal line from the center of the frame
+    img = cv2.line(img,(320,0),(320,480),(0,0,255),2)
+    img = cv2.line(img,(0,240),(640,240),(0,0,255),2)
+    #draw line from the center of the frame to the center of the object
+
+    for i in range(len(centers)):
+
+        img = cv2.line(img,(320,240),(centers[i][0], centers[i][1]),(0,0,255),2)
+        # write the angle of the object from the center of the frame using euler formula with cos and sin
+        #calculate cos to know left or right
+        cos = (centers[i][0]-320)/np.sqrt((centers[i][0]-320)**2+(centers[i][1]-240)**2)
+        #calculate sin to know top or bottom
+        sin = (centers[i][1]-240)/np.sqrt((centers[i][0]-320)**2+(centers[i][1]-240)**2)
+        sin =  - sin
+        #write the value of cos and sin with 2 decimal places
+        img = cv2.putText(img,f'cos: {cos:.2f}',(23,16+75),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        img = cv2.putText(img,f'sin: {sin:.2f}',(23,16+60),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        #if cos is positive then the object is on the right side of the frame
+        if cos > 0:
+            img = cv2.putText(img,'Right',(23,16+45),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        #if cos is negative then the object is on the left side of the frame
+        else:
+            img = cv2.putText(img,'Left',(23,16+45),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        #if sin is positive then the object is on the top side of the frame
+        if sin < 0:
+            img = cv2.putText(img,'Bottom',(23,16+30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        #if sin is negative then the object is on the bottom side of the frame
+        else:
+            img = cv2.putText(img,'Top',(23,16+30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        
+        #Write the length of the line from the center of the frame to the center of the object in pixel
+        img = cv2.putText(img,f'Length {np.sqrt((centers[i][0]-320)**2+(centers[i][1]-240)**2):.2f} pixel value',(23,16+15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    return img
+
+def draw_depth_cal(img):
+    #draw two vertical line to show the depth calculation
+    img = cv2.line(img,(266,0),(266,480),(0,255,0),2)
+    img = cv2.line(img,(373,0),(373,480),(0,255,0),2)
+
+    img = cv2.line(img,(266,0),(373,0),(0,255,0),2)
+    img = cv2.line(img,(266,160),(373,160),(0,255,0),2)
+    img = cv2.line(img,(266,320),(373,320),(0,255,0),2)
+    img = cv2.line(img,(266,480),(373,480),(0,255,0),2)
+
+    return img
+
+     

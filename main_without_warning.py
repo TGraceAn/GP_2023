@@ -116,45 +116,6 @@ if __name__ == '__main__':
 
             print('------------------')
 
-            # cv2.imshow('Object', combined_img)
-
-
-        # # Use for finding object
-        # # TODO: Add a new object position function using Euler angle
-        # if cv2.waitKey(1) == ord('f'):
-        #     # engine.say('Processing')
-        #     # engine.runAndWait()
-            
-        #     bounding_box_2, scores_2, cls_idx_2 = object_onnx_run(frame, object_model_2)
-        #     object_position = object_position_find(bounding_box_2)
-
-        #     # object_dict = u1.final_object_dict(cls_idx)
-        #     object_dict_2 = final_object_dict(cls_idx_2)
-
-        #     # Testing position of object
-        #     # If object's bounding box fits 50% of the center frame then consider it as the object in front of the user
-
-        #     object_dist_2 = cal_depth(bounding_box_2, depth_map)
-
-
-        #     combined_img = draw_detections(frame, bounding_box_2, scores_2, cls_idx_2)
-        #     combined_img_depth = draw_detections(depth_map, bounding_box_2, scores_2, cls_idx_2)
-
-        #     cv2.imshow('Object', combined_img)
-        #     cv2.imshow('Depth_object', combined_img_depth)
-            
-        #     for i in range(len(object_dict_2)):
-        #         print(f'{object_dict_2[i]} at: {object_dist_2[i]}: {object_position[i]}')
-
-        #         # # Distance calculation here?
-        #         # engine.say(object_dict_2[i])
-        #         # engine.runAndWait()
-
-        #     print('------------------')
-
-        #     # cv2.imshow('Object', combined_img)
-
-
         # When everything done, release the capture
         if cv2.waitKey(1) == ord('q'):
 

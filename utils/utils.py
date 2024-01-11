@@ -165,11 +165,7 @@ def final_object_dict(class_ids):
     final_list = []
     for class_id in class_ids:
         label = class_names[class_id]
-
-        #add dict later
-
         final_list.append(label)
     
     return final_list
 
-        
