@@ -11,15 +11,14 @@ OBJECT_THRESHOLD = 550
 K = 5 # for EMA
 object_model = ObjectDetection('model_instances/object_detection/yolov8s_weight.onnx')
 
-def get_descriptions(obj_dict, obj_dist, obj_position):
-    obj_descriptions = {}
-    for obj, dist, pos in zip(obj_dict, obj_dist, obj_position):
-        descriptions = f"at: mean {dist}, {pos}, "
-        descriptions += 'CLOSE' if dist > OBJECT_THRESHOLD else 'FAR'
-
-        obj_descriptions[obj] = descriptions
-
-    return obj_descriptions
+def get_displayed_depth(depth):
+    display = cv.normalize(
+        depth, None, 0, 255,
+        norm_type=cv.NORM_MINMAX,
+        dtype=cv.CV_8U
+    )
+    display = cv.applyColorMap(display, cv.COLORMAP_MAGMA)
+    return display
 
 if __name__ == '__main__':
     video_source = 0 # can be mp4 file
@@ -40,12 +39,7 @@ if __name__ == '__main__':
 
         depth = depth_midas(cheat_frame)
         # DISPLAY FRAME AND DEPTH
-        display = cv.normalize(
-            depth, None, 0, 255,
-            norm_type=cv.NORM_MINMAX,
-            dtype=cv.CV_8U
-        )
-        display = cv.applyColorMap(display, cv.COLORMAP_MAGMA)
+        display = get_displayed_depth(depth)
 
         cv.imshow('depth', display)
         cv.imshow('frame', cheat_frame)
@@ -62,33 +56,35 @@ if __name__ == '__main__':
             i += 1
             ema += warning_depth
             if i == K: ema /= K
-            continue
-
-        C = 2/(K+1)
-        ema = warning_depth * C + ema * (1-C)
-        # print(ema)
-        if (ema > DEPTH_THRESHOLD).any():
-            print('Object in front of you!')
+        else:
+            C = 2/(K+1)
+            ema = warning_depth * C + ema * (1-C)
+            # print(ema)
+            if (ema > DEPTH_THRESHOLD).any():
+                print('Object in front of you!')
 
         # OBJECT DESCRIPTION
         if key == ord('o'):
-            cv.destroyWindow('detect')
+            depth = depth_midas(frame)
             boxes, scores, cls_ids = object_onnx_run(frame, object_model)
 
-            object_dict = final_object_dict(cls_ids)
-            object_position = object_position_find(boxes)
-            object_dist = cal_depth(boxes, depth)
+            obj_dict = final_object_dict(cls_ids)
+            obj_position = object_position_find(boxes)
+            obj_dist = cal_depth(boxes, depth)
 
-            obj_descriptions = get_descriptions(
-                object_dict,
-                object_dist,
-                object_position
-            )
-            print(obj_descriptions)
+            dist_bool = ['CLOSE' if d > OBJECT_THRESHOLD else 'FAR'
+                for d in obj_dist]
 
+            obj_descriptions = list(zip(obj_dict, obj_position, dist_bool))
+            from collections import Counter
+            for description, n in Counter(obj_descriptions).items():
+                print(f"{n} {' '.join(description)}")
+
+            display = get_displayed_depth(depth)
             detect = draw_detections(display, boxes, scores, cls_ids)
+
             cv.imshow('detect', detect)
-            cv.moveWindow('detect', 350, 100)
+            cv.moveWindow('detect', 600, 200)
 
     cap.release()
     cv.destroyAllWindows()

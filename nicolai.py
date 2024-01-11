@@ -3,7 +3,6 @@
 - open webcam with openCV, combine with pytorch, load in the models and do depth estimation
 - on live webcam feed
 '''
-
 import cv2
 import torch
 import time
@@ -33,14 +32,12 @@ if model_type == "DPT_Large" or model_type == "DPT_Hybrid":
     transform = midas_transforms.dpt_transform
 else:
     transform = midas_transforms.small_transform
-
 # print(transform)
 
 depth_shape = (480,640)
 def depth_midas(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     input_batch = transform(img).to(device)
-
     # print(input_batch.shape) --> torch.Size([1, 3, 128, 256])
 
     with torch.no_grad():

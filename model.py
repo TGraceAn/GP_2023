@@ -10,13 +10,6 @@ import cv2
 import numpy as np
 from utils.utils import multiclass_nms, xywh2xyxy
 
-"""
-Object detection model
-
-"""
-# Object_SESS = nxrun.InferenceSession('model_instances/object_detection/yolov8m_best.onnx', providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
-
-
 class ObjectDetection:
     def __init__(self, path, conf_thres=0.25, iou_thres=0.7):
         self.conf_threshold = conf_thres
@@ -106,29 +99,6 @@ class ObjectDetection:
         model_outputs = self.session.get_outputs()
         self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
 
-############################################################################################################
-#TODO: Finish the rest of the models
-# Testing new code
-"""
-def object_onnx_run_2(img):
-
-    arr = np.expand_dims(img, 0)
-    arr = np.array(arr, dtype = np.float32)
-    arr = np.array(np.transpose(arr, (0, 3, 1, 2)), dtype=np.float32)
-
-    model_inputs = Object_SESS.get_inputs()
-
-    input_names = [model_inputs[i].name for i in range(len(model_inputs))]
-    input_shape = model_inputs[0].shape
-    input_height = input_shape[2]
-    input_width = input_shape[3]
-
-    outputs = Object_SESS.run(input_names, {input_names[0]: arr})
-    # bounding_box, scores, cls = model(arr)
-
-    return bounding_box, scores, cls
-"""
-
 def object_onnx_run(img, model):
     img = img/255
 
@@ -138,104 +108,3 @@ def object_onnx_run(img, model):
 
     bounding_box, scores, cls = model(arr)
     return bounding_box, scores, cls
-
-"""
-Dist_Depth model in seperation for the flow
-"""
-Dist_SESS = nxrun.InferenceSession('model_instances/dist_depth/dist_depth.onnx', providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
-
-def depth_onnx_run(img):
-
-    img = np.array(img, dtype = np.float32)
-    arr = np.expand_dims(img, 0)
-
-    input_name = Dist_SESS.get_inputs()[0].name
-
-    # label_name = sess.get_outputs()[0].name
-
-    out = Dist_SESS.run(None, {input_name: arr})[0]
-    out = out[0, :, :, 0]
-    out = (out/out.max()*255).astype(np.uint8)
-
-    return out
-
-
-
-
-class Dist_Depth(nn.Module):
-    def __init__(self, shape = (480,640,3)):
-        super(Dist_Depth, self).__init__()
-        self.shape = shape
-
-    def __onnx_run__(self, inp: np.ndarray, weight_path = 'model_instances/dist_depth/dist_depth.onnx'):
-        sess = nxrun.InferenceSession(weight_path, providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
-        input_name = sess.get_inputs()[0].name
-        out = sess.run(None, {input_name: inp})[0]
-        return out
-
-    def __prep__(self, inp):
-        arr = np.expand_dims(inp, 0)
-        arr = np.array(arr, dtype = np.float32)
-        # arr = cv2.resize(arr, (self.shape[1] , self.shape[0]))
-        # arr = arr/255
-        return arr
-
-    def forward(self, x):
-        inp = self.__prep__(x)
-        # Two models need two different shapes
-
-        depth_map = self.__onnx_run__(inp)
-        depth_map = depth_map[0,:,:,0]
-        depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
-
-        return depth_map
-
-
-
-
-
-"""
-Integration class for the two models
-Explanation here:
-
-"""
-class Integration(nn.Module):
-    def __init__(self):
-        super(Integration, self).__init__()
-        self.obj_detect = ObjectDetection('model_instances/object_detection/yolov8m.onnx')
-
-    def __onnx_run__(self, inp: np.ndarray, weight_path = 'model_instances/dist_depth/dist_depth.onnx'):
-        sess = nxrun.InferenceSession(weight_path, providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
-        input_name = sess.get_inputs()[0].name
-        out = sess.run(None, {input_name: inp})[0]
-        return out
-
-    def __prep__(self, inp):
-        arr = np.expand_dims(inp, 0)
-        arr = np.array(arr, dtype = np.float32)
-
-
-        return arr
-
-    def forward(self, x):
-        inp = self.__prep__(x)
-        # print(inp.shape)
-
-        # Two models need two different shapes
-        arr = np.array(np.transpose(inp, (0, 3, 1, 2)), dtype=np.float32)
-        # print(arr.shape)
-
-        bounding_box, scores, cls = self.obj_detect(arr)
-        depth_map = self.__onnx_run__(inp)
-
-        depth_map = depth_map[0,:,:,0]
-
-
-
-        #normalization
-        depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
-
-        return bounding_box, scores, cls, depth_map
-
-
-

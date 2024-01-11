@@ -185,8 +185,7 @@ def cal_warning_depth(depth_map):
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
-    for i in range(len(bounding_boxes)):
-        box = bounding_boxes[i]
+    for box in bounding_boxes:
         box = box.astype(int)
 
         box_height = box[3] - box[1]
@@ -202,7 +201,10 @@ def cal_depth(bounding_boxes, depth_map):
             box[3] - pad_height,
         ])
 
-        obj_dist = np.mean(depth_map[new_box[1]: new_box[3], new_box[0]: new_box[2]])
+        obj_dist = np.mean(depth_map[
+            new_box[1]: new_box[3],
+            new_box[0]: new_box[2]
+        ])
         depth.append(obj_dist)
 
     return depth
