@@ -111,7 +111,7 @@ class ObjectDetection:
 # Testing new code
 """
 def object_onnx_run_2(img):
-    
+
     arr = np.expand_dims(img, 0)
     arr = np.array(arr, dtype = np.float32)
     arr = np.array(np.transpose(arr, (0, 3, 1, 2)), dtype=np.float32)
@@ -125,24 +125,22 @@ def object_onnx_run_2(img):
 
     outputs = Object_SESS.run(input_names, {input_names[0]: arr})
     # bounding_box, scores, cls = model(arr)
-    
+
     return bounding_box, scores, cls
 """
-    
+
 def object_onnx_run(img, model):
-    
+    img = img/255
+
     arr = np.expand_dims(img, 0)
     arr = np.array(arr, dtype = np.float32)
     arr = np.array(np.transpose(arr, (0, 3, 1, 2)), dtype=np.float32)
 
     bounding_box, scores, cls = model(arr)
-    
     return bounding_box, scores, cls
-
 
 """
 Dist_Depth model in seperation for the flow
-
 """
 Dist_SESS = nxrun.InferenceSession('model_instances/dist_depth/dist_depth.onnx', providers=['AzureExecutionProvider', 'CPUExecutionProvider'])
 
@@ -154,7 +152,7 @@ def depth_onnx_run(img):
     input_name = Dist_SESS.get_inputs()[0].name
 
     # label_name = sess.get_outputs()[0].name
-    
+
     out = Dist_SESS.run(None, {input_name: arr})[0]
     out = out[0, :, :, 0]
     out = (out/out.max()*255).astype(np.uint8)
@@ -181,7 +179,7 @@ class Dist_Depth(nn.Module):
         # arr = cv2.resize(arr, (self.shape[1] , self.shape[0]))
         # arr = arr/255
         return arr
-        
+
     def forward(self, x):
         inp = self.__prep__(x)
         # Two models need two different shapes
@@ -211,18 +209,18 @@ class Integration(nn.Module):
         input_name = sess.get_inputs()[0].name
         out = sess.run(None, {input_name: inp})[0]
         return out
-    
+
     def __prep__(self, inp):
         arr = np.expand_dims(inp, 0)
         arr = np.array(arr, dtype = np.float32)
 
 
         return arr
-        
+
     def forward(self, x):
         inp = self.__prep__(x)
         # print(inp.shape)
-        
+
         # Two models need two different shapes
         arr = np.array(np.transpose(inp, (0, 3, 1, 2)), dtype=np.float32)
         # print(arr.shape)
@@ -232,12 +230,12 @@ class Integration(nn.Module):
 
         depth_map = depth_map[0,:,:,0]
 
-        
+
 
         #normalization
         depth_map = (depth_map/depth_map.max()*255).astype(np.uint8)
 
         return bounding_box, scores, cls, depth_map
-    
+
 
 

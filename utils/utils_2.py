@@ -125,7 +125,7 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
         label = class_names_3[class_id]
 
         caption = f'{label} {int(score * 100)}%'
-        
+
         draw_text(det_img, caption, box, color, font_size, text_thickness)
 
     return det_img
@@ -139,7 +139,7 @@ thickness: int = 2) -> np.ndarray:
 
 def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple = (255, 0, 0),
               font_size: float = 0.001, text_thickness: int = 2) -> np.ndarray:
-    
+
     x1, y1, x2, y2 = box.astype(int)
     (tw, th), _ = cv2.getTextSize(text=text, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                   fontScale=font_size, thickness=text_thickness)
@@ -174,67 +174,39 @@ def final_object_dict(class_ids):
         #add dict later
 
         final_list.append(label)
-    
+
     return final_list
 
-# def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
-#     det_img = image.copy()
-#     img_height, img_width = image.shape[:2]
-#     font_size = min([img_height, img_width]) * 0.0006
-#     text_thickness = int(min([img_height, img_width]) * 0.001)
-
-# #    Draw masks
-# #     det_img = draw_masks(det_img, boxes, class_ids, mask_alpha)
-
-#     # Draw bounding boxes and labels of detections
-
-#     for class_id, box, score in zip(class_ids, boxes, scores):
-
-#         color = colors[class_id]
-
-#         draw_box(det_img, box, color)
-
-#         label = class_names[class_id]
-
-#         caption = f'{label} {int(score * 100)}%'
-
-#         #use for positional data and depth data later
-#         # caption = f'{label} {int(score * 100)}%: {depth} {object_position}'
-        
-#         draw_text(det_img, caption, box, color, font_size, text_thickness)
-
-#     return det_img
-
-
-# Model calculation functions
-    
 def cal_warning_depth(depth_map):
-    # Take the mean of the 63x47 center of the depth map 640x480
-    depth = depth_map[216:263, 288:335]
-    depth = np.mean(depth)
-    return depth
+    return np.mean(
+        np.split(depth_map[:, 266:373], 3),
+        axis=(1,2)
+    )
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
-    depth_median = []
-    depth_max = []
-    depth_min = []
-
     for i in range(len(bounding_boxes)):
         box = bounding_boxes[i]
         box = box.astype(int)
-        depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
 
-        depth_median_value = np.median(depth_map[box[1]:box[3], box[0]:box[2]])
-        depth_max_value = np.max(depth_map[box[1]:box[3], box[0]:box[2]])
+        box_height = box[3] - box[1]
+        box_width = box[2] - box[0]
 
-        depth_median.append(depth_median_value)
-        depth_max.append(depth_max_value)
-        depth_min.append(np.min(depth_map[box[1]:box[3], box[0]:box[2]]))
+        pad_height = int(0.14*box_height)
+        pad_width = int(0.14*box_width)
 
-        depth.append(depth_value)
-    return depth, depth_median, depth_max, depth_min
-        
+        new_box = np.array([
+            box[0] + pad_width,
+            box[1] + pad_height,
+            box[2] - pad_width,
+            box[3] - pad_height,
+        ])
+
+        obj_dist = np.mean(depth_map[new_box[1]: new_box[3], new_box[0]: new_box[2]])
+        depth.append(obj_dist)
+
+    return depth
+
 def get_iob(bb1, based_box):
     # determine the coordinates of the intersection rectangle
     x_left = max(bb1[0], based_box[0])
@@ -304,7 +276,7 @@ def object_position_find(bounding_box):
                 object_position.append('Top right')
             else:
                 object_position.append('Unknown')
-                
+
     return object_position
 
 # def object_depth
