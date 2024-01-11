@@ -174,75 +174,38 @@ def final_object_dict(class_ids):
         final_list.append(label)
     
     return final_list
-
-# def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
-#     det_img = image.copy()
-#     img_height, img_width = image.shape[:2]
-#     font_size = min([img_height, img_width]) * 0.0006
-#     text_thickness = int(min([img_height, img_width]) * 0.001)
-
-# #    Draw masks
-# #     det_img = draw_masks(det_img, boxes, class_ids, mask_alpha)
-
-#     # Draw bounding boxes and labels of detections
-
-#     for class_id, box, score in zip(class_ids, boxes, scores):
-
-#         color = colors[class_id]
-
-#         draw_box(det_img, box, color)
-
-#         label = class_names[class_id]
-
-#         caption = f'{label} {int(score * 100)}%'
-
-#         #use for positional data and depth data later
-#         # caption = f'{label} {int(score * 100)}%: {depth} {object_position}'
-        
-#         draw_text(det_img, caption, box, color, font_size, text_thickness)
-
-#     return det_img
-
-
-# Model calculation functions
     
 def cal_warning_depth(depth_map):
-    
     depth_top_center = depth_map[0:160, 266:373]
     depth_mid_center = depth_map[160:320, 266:373]
     depth_bottom_center = depth_map[320:480, 266:373]
     depth_value_top = np.mean(depth_top_center)
     depth_value_mid = np.mean(depth_mid_center)
     depth_value_bottom = np.mean(depth_bottom_center)
-
-    print(depth_value_top, depth_value_mid, depth_value_bottom)
-
+    # print(depth_value_top, depth_value_mid, depth_value_bottom)
     return depth_value_top, depth_value_mid, depth_value_bottom
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
-    depth_median = []
-    depth_max = []
-    depth_min = []
-
     for i in range(len(bounding_boxes)):
         box = bounding_boxes[i]
         box = box.astype(int)
-        box_center = [(box[0]+box[2])//2, (box[1]+box[3])//2]
-        k = 3
-        box = [box_center[0]-k, box_center[1]-k, box_center[0]+k, box_center[1]+k]
+        # Take the center of the box that covers 50% of the bounding box area
+        # height of the pixel 
+        box_height = box[3] - box[1]
+        # width of the pixel
+        box_width = box[2] - box[0]
+        padding_value_height = int(0.14*box_height)
 
-        depth_value = np.mean(depth_map[box[1]:box[3], box[0]:box[2]])
+        padding_value_width = int(0.14*box_width)
 
-        depth_median_value = np.median(depth_map[box[1]:box[3], box[0]:box[2]])
-        depth_max_value = np.max(depth_map[box[1]:box[3], box[0]:box[2]])
+        # new box
+        new_box = np.array([box[0]+padding_value_width, box[1]+padding_value_height, box[2]-padding_value_width, box[3]-padding_value_height])
 
-        depth_median.append(depth_median_value)
-        depth_max.append(depth_max_value)
-        depth_min.append(np.min(depth_map[box[1]:box[3], box[0]:box[2]]))
-
+        #calculate the depth
+        depth_value = np.mean(depth_map[new_box[1]:new_box[3], new_box[0]:new_box[2]])
         depth.append(depth_value)
-    return depth, depth_median, depth_max, depth_min
+    return depth
         
 def get_iob(bb1, based_box):
     # determine the coordinates of the intersection rectangle
@@ -283,7 +246,7 @@ def object_position_find(bounding_box):
         box = bounding_box[i]
         box = box.astype(int)
         if get_iob(box, mid_mid_box) > 0.5 or get_iob(box, bottom_mid_box) > 0.5:
-            object_position.append('In front')
+            object_position.append('Front')
         elif get_iob(box, mid_left_box) > 0.5:
             object_position.append('Left')
         elif get_iob(box, bottom_left_box) > 0.5:
@@ -291,7 +254,7 @@ def object_position_find(bounding_box):
         elif get_iob(box, mid_right_box) > 0.5:
             object_position.append('Right')
         elif get_iob(box, bottom_right_box) > 0.5:
-            object_position.append('Bottome Right')
+            object_position.append('Bottom Right')
         elif get_iob(box, top_mid_box) > 0.5:
             object_position.append('Top mid')
         elif get_iob(box, top_left_box) > 0.5:
@@ -307,15 +270,15 @@ def object_position_find(bounding_box):
             elif box_center_x < 213 and box_center_y >= 320:
                 object_position.append('Bottom left')
             elif box_center_x >= 213 and box_center_x < 426 and box_center_y >= 160:
-                object_position.append('In front')
+                object_position.append('Front')
             elif box_center_x >= 213 and box_center_x < 426 and box_center_y >= 320:
-                object_position.append('Bottom mid')
+                object_position.append('Bottom')
             elif box_center_x >= 426 and box_center_y >= 160 and box_center_y < 320:
                 object_position.append('Right')
             elif box_center_x >= 426 and box_center_y >= 320:
                 object_position.append('Bottom right')
             elif box_center_x >= 213 and box_center_x < 426 and box_center_y < 160:
-                object_position.append('Top mid')
+                object_position.append('Above')
             elif box_center_x < 213 and box_center_y < 160:
                 object_position.append('Top left')
             elif box_center_x >= 426 and box_center_y < 160:
@@ -324,6 +287,9 @@ def object_position_find(bounding_box):
                 object_position.append('Unknown')
                 
     return object_position
+
+
+
 
 
 #Use for drawing the frame division
