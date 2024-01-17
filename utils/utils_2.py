@@ -176,35 +176,35 @@ def final_object_dict(class_ids):
     return final_list
     
 def cal_warning_depth(depth_map):
-    depth_top_center = depth_map[0:160, 266:373]
-    depth_mid_center = depth_map[160:320, 266:373]
-    depth_bottom_center = depth_map[320:480, 266:373]
-    depth_value_top = np.mean(depth_top_center)
-    depth_value_mid = np.mean(depth_mid_center)
-    depth_value_bottom = np.mean(depth_bottom_center)
-    # print(depth_value_top, depth_value_mid, depth_value_bottom)
-    return depth_value_top, depth_value_mid, depth_value_bottom
+    return np.mean(
+        np.split(depth_map[:, 266:373], 3),
+        axis=(1,2) 
+    ), np.mean(depth_map[400:480, 213:426])
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
-    for i in range(len(bounding_boxes)):
-        box = bounding_boxes[i]
+    for box in bounding_boxes:
         box = box.astype(int)
-        # Take the center of the box that covers 50% of the bounding box area
-        # height of the pixel 
+
         box_height = box[3] - box[1]
-        # width of the pixel
         box_width = box[2] - box[0]
-        padding_value_height = int(0.14*box_height)
 
-        padding_value_width = int(0.14*box_width)
+        pad_height = int(0.14*box_height)
+        pad_width = int(0.14*box_width)
 
-        # new box
-        new_box = np.array([box[0]+padding_value_width, box[1]+padding_value_height, box[2]-padding_value_width, box[3]-padding_value_height])
+        new_box = np.array([
+            box[0] + pad_width,
+            box[1] + pad_height,
+            box[2] - pad_width,
+            box[3] - pad_height,
+        ])
 
-        #calculate the depth
-        depth_value = np.mean(depth_map[new_box[1]:new_box[3], new_box[0]:new_box[2]])
-        depth.append(depth_value)
+        obj_dist = np.mean(depth_map[
+            new_box[1]: new_box[3],
+            new_box[0]: new_box[2]
+        ])
+        depth.append(obj_dist)
+
     return depth
         
 def get_iob(bb1, based_box):
@@ -288,11 +288,7 @@ def object_position_find(bounding_box):
                 
     return object_position
 
-
-
-
-
-#Use for drawing the frame division
+#Use for drawing the frame division for report
 depth_center = np.array([320,240])
 
 def object_position_find_2(bounding_box):
@@ -409,12 +405,23 @@ def draw_depth_cal(img):
     #draw two vertical line to show the depth calculation
     img = cv2.line(img,(266,0),(266,480),(0,255,0),2)
     img = cv2.line(img,(373,0),(373,480),(0,255,0),2)
-
     img = cv2.line(img,(266,0),(373,0),(0,255,0),2)
     img = cv2.line(img,(266,160),(373,160),(0,255,0),2)
     img = cv2.line(img,(266,320),(373,320),(0,255,0),2)
     img = cv2.line(img,(266,480),(373,480),(0,255,0),2)
-
     return img
 
+def draw_box_cal(img, bounding_box):
+    # height of the pixel
+    box = bounding_box
+    box_height = box[3] - box[1]
+    # width of the pixel
+    box_width = box[2] - box[0]
+    padding_value_height = int(0.14*box_height)
+    padding_value_width = int(0.14*box_width)
+    # new box
+    new_box = np.array([box[0]+padding_value_width, box[1]+padding_value_height, box[2]-padding_value_width, box[3]-padding_value_height])
+    #draw the new box
+    img = cv2.rectangle(img,(new_box[0],new_box[1]),(new_box[2],new_box[3]),(0,255,0),2)
+    return img
      

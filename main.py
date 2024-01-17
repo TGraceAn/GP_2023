@@ -1,14 +1,14 @@
-from model import ObjectDetection, object_onnx_run
+from model import ObjectDetection, object_onnx_run_2
 import cv2
 from utils.utils_2 import draw_detections, final_object_dict, cal_warning_depth, cal_depth, object_position_find
 import time
 import pyttsx3
-from nicolai import depth_midas
+from nicolai_2 import depth_midas
 
 # import matplotlib.pyplot as plt
 # import numpy as np
 
-object_model_2 = ObjectDetection('model_instances/object_detection/yolov8m_weight.onnx')
+object_model_2 = ObjectDetection('model_instances/object_detection/yolov8s_weight.onnx')
 # start_time = time.time()
 # Front camera is flipped
 # count = 1
@@ -50,20 +50,20 @@ if __name__ == '__main__':
         
 
         # TTS
-        DEPTH_THRESHOLD = 700
+        DEPTH_THRESHOLD = 650
         if depth_value_top > DEPTH_THRESHOLD or depth_value_mid > DEPTH_THRESHOLD or depth_value_bottom > DEPTH_THRESHOLD:
             print('Object in front of you!')
             print("Top: ", depth_value_top, "Mid: ", depth_value_mid, "Bottom: ", depth_value_bottom)
         #     engine.say('Object in front of you!')
         #     engine.runAndWait()
 
-        OBJECT_THRESHOLD = 550
+        OBJECT_THRESHOLD = 400
 
         # Use for describing scene
         if cv2.waitKey(1) == ord('o'):
             depth_map, original_depth_map = depth_midas(frame)
             frame = frame/255
-            bounding_box_2, scores_2, cls_idx_2 = object_onnx_run(frame, object_model_2)
+            bounding_box_2, scores_2, cls_idx_2 = object_onnx_run_2(frame, object_model_2)
             object_position = object_position_find(bounding_box_2)
             object_dict_2 = final_object_dict(cls_idx_2)
             # Testing position of object
@@ -76,6 +76,15 @@ if __name__ == '__main__':
             
             cv2.imshow('Object', combined_img)
             cv2.imshow('Depth_object', combined_img_depth)
+
+            # #Use for report
+            # frame = cv2.convertScaleAbs(frame, alpha=(255.0))
+            # combined_img = cv2.convertScaleAbs(combined_img, alpha=(255.0))
+            # cv2.imwrite('images/normal.jpg', frame)
+            # cv2.imwrite('images/depth.jpg', depth_map)
+            # cv2.imwrite('images/object.jpg', combined_img)
+            # cv2.imwrite('images/depth_object.jpg', combined_img_depth)
+            # print(bounding_box_2[0], object_dict_2[0], object_dist_2[0])
             
             for i in range(len(object_dict_2)):
                 print(f'{object_dict_2[i]} at: mean {object_dist_2[i]}  {object_position[i]}')

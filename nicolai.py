@@ -64,4 +64,4 @@ def depth_midas(img):
         depth_map = (depth_map*255).astype(np.uint8)
         depth_map = cv2.applyColorMap(depth_map , cv2.COLORMAP_MAGMA)
         
-        return depth_map, orginal_depth_map
+        return orginal_depth_map

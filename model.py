@@ -130,15 +130,23 @@ def object_onnx_run_2(img):
 """
     
 def object_onnx_run(img, model):
-    
+    img = img/255
     arr = np.expand_dims(img, 0)
     arr = np.array(arr, dtype = np.float32)
     arr = np.array(np.transpose(arr, (0, 3, 1, 2)), dtype=np.float32)
-
+    
     bounding_box, scores, cls = model(arr)
     
     return bounding_box, scores, cls
 
+def object_onnx_run_2(img, model):
+    
+    arr = np.expand_dims(img, 0)
+    arr = np.array(arr, dtype = np.float32)
+    arr = np.array(np.transpose(arr, (0, 3, 1, 2)), dtype=np.float32)
+    bounding_box, scores, cls = model(arr)
+    
+    return bounding_box, scores, cls
 
 """
 Dist_Depth model in seperation for the flow
