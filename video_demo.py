@@ -17,7 +17,7 @@ K = 5 # for EMA
 # count = 0
 # start_time = time.time()
 
-object_model = ObjectDetection('model_instances/object_detection/yolov8s_weight.onnx')
+object_model = ObjectDetection('model_instances/object_detection/yolov8m_weight.onnx')
 
 obj = cv2.VideoWriter('output_videos/obj_3.avi',  
                          cv2.VideoWriter_fourcc(*'MJPG'), 
@@ -82,6 +82,9 @@ if __name__ == '__main__':
 
             # WARNING
             warning_depth, additional_depth, additional_depth_2 = cal_warning_depth(depth)
+            warning_depth += 50
+            additional_depth +=50
+            additional_depth_2 += 50
                 
             if (warning_depth > DEPTH_THRESHOLD).any() or additional_depth_2 > DEPTH_THRESHOLD:
                 print('Object in front of you!')
