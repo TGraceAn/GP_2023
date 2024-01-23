@@ -31,8 +31,6 @@ if __name__ == '__main__':
     i, ema = 0, None
     while cap.isOpened():
         ret, frame = cap.read()
-        if video_source == 0:
-            frame = cv.flip(frame, 1)
         frame = cv.resize(frame, INPUT_SHAPE)
         key = cv.waitKey(1)
 
@@ -55,7 +53,7 @@ if __name__ == '__main__':
         if key == ord('q'): break
 
         # WARNING
-        warning_depth, additional_depth = cal_warning_depth(depth)
+        warning_depth, additional_depth, additional_depth_2 = cal_warning_depth(depth)
 
         if i == 0: ema = np.zeros_like(warning_depth)
         if i < K:
@@ -68,17 +66,22 @@ if __name__ == '__main__':
             ema = warning_depth * C + ema * (1-C)
             print(warning_depth)
 
-            if (warning_depth > DEPTH_THRESHOLD).any() or additional_depth > DEPTH_THRESHOLD:
+            if (warning_depth > DEPTH_THRESHOLD).any() or additional_depth > DEPTH_THRESHOLD or additional_depth_2 > DEPTH_THRESHOLD:
                 print('Object in front of you!')
                 
+                # USE for report
                 if count % 5 == 0:
                     # write on display with only 2 decimal places
+                    display_2 = display.copy()
                     display = cv.putText(display, 'Object in front of you!', (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
                     display = cv.putText(display, f'Top mean: {warning_depth[0]:.2f}', (50, 100), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
                     display = cv.putText(display, f'Mid mean: {warning_depth[1]:.2f}', (50, 150), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
                     display = cv.putText(display, f'Bottom mean: {warning_depth[2]:.2f}', (50, 200), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
-                    display = cv.putText(display, f'Flat bottom mean: {additional_depth:.2f}', (50, 250), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
-                    cv.imwrite(f'output_images/normal_{count}.jpg', frame)
+                    # display = cv.putText(display, f'Half bottom mean: {additional_depth:.2f}', (50, 250), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
+                    display = cv.putText(display, f'Half bottom mean: {additional_depth_2:.2f}', (50, 250), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv.LINE_AA)
+                    cv.imwrite(f'output_images/figure_8a_{count}.jpg', frame)
+                    cv.imwrite(f'output_images/figure_8b_{count}.jpg', cheat_frame)
+                    cv.imwrite(f'output_images/figure_8c_{count}.jpg', display_2)
                     cv.imwrite(f'output_images/warning_{count}.jpg', display)
                 count += 1
                 
@@ -103,7 +106,19 @@ if __name__ == '__main__':
             display = get_displayed_depth(depth)
             detect = draw_detections(display, boxes, scores, cls_ids)
 
+            frame_2 = frame.copy()
+            frame = draw_detections(frame, boxes, scores, cls_ids)
+
             cv.imshow('detect', detect)
+            cv.imshow('object', frame)
+
+            print(boxes[0], obj_dict[0], obj_dist[0])
+
+            cv.imwrite('images4report/normal.jpg', frame_2)
+            cv.imwrite('images4report/object.jpg', frame)
+            cv.imwrite('images4report/object_detection.jpg', detect)
+            cv.imwrite('images4report/depth.jpg', display)
+            
             cv.moveWindow('detect', 600, 200)
 
     cap.release()

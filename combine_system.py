@@ -23,7 +23,7 @@ def get_displayed_depth(depth):
     display = cv.applyColorMap(display, cv.COLORMAP_MAGMA)
     return display
 
-image_path = 'images/kc3.jpg'
+image_path = 'images4report/depth.jpg'
 image = cv.imread(image_path)
 
 if __name__ == '__main__':
@@ -43,10 +43,10 @@ if __name__ == '__main__':
     cv.moveWindow('depth', 0, 0)
     cv.moveWindow('frame', 700, 0)
 
-    # WARNING
-    depth_value_top, depth_value_mid, depth_value_bottom = cal_warning_depth(depth)
-    if  depth_value_top > DEPTH_THRESHOLD or depth_value_mid > DEPTH_THRESHOLD or depth_value_bottom > DEPTH_THRESHOLD:
-        print('Object in front of you!')
+    # # WARNING
+    # depth_value_top, depth_value_mid, depth_value_bottom = cal_warning_depth(depth)
+    # if  depth_value_top > DEPTH_THRESHOLD or depth_value_mid > DEPTH_THRESHOLD or depth_value_bottom > DEPTH_THRESHOLD:
+    #     print('Object in front of you!')
         
 
     # OBJECT DESCRIPTION

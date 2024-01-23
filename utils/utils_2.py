@@ -108,8 +108,8 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
     det_img = image.copy()
 
     img_height, img_width = image.shape[:2]
-    font_size = min([img_height, img_width]) * 0.0006
-    text_thickness = int(min([img_height, img_width]) * 0.001)
+    font_size = min([img_height, img_width]) * 0.001
+    text_thickness = int(min([img_height, img_width]) * 0.0035)
 
 #    Draw masks
 #     det_img = draw_masks(det_img, boxes, class_ids, mask_alpha)
@@ -118,7 +118,9 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
 
     for class_id, box, score in zip(class_ids, boxes, scores):
 
-        color = colors[class_id]
+        color = (255,255,255)
+
+        color_box = colors[class_id]
 
         draw_box(det_img, box, color)
 
@@ -131,24 +133,24 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
     return det_img
 
 
-def draw_box(image: np.ndarray, box: np.ndarray, color: tuple = (0, 0, 255),
+def draw_box(image: np.ndarray, box: np.ndarray, color: tuple = (0, 0, 0),
 thickness: int = 2) -> np.ndarray:
     x1, y1, x2, y2 = box.astype(int)
     return cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness)
 
 
-def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple = (255, 0, 0),
+def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple = (0, 0, 0),
               font_size: float = 0.001, text_thickness: int = 2) -> np.ndarray:
     
     x1, y1, x2, y2 = box.astype(int)
     (tw, th), _ = cv2.getTextSize(text=text, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                  fontScale=font_size, thickness=text_thickness)
+                                  fontScale=font_size , thickness=text_thickness)
     th = int(th * 1.2)
 
     cv2.rectangle(image, (x1, y1),
                   (x1 + tw, y1 + th), color, -1)
 
-    return cv2.putText(image, text, (x1, y1 + th), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 0, 0), text_thickness, cv2.LINE_AA)
+    return cv2.putText(image, text, (x1, y1 + th), cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 0, 0), text_thickness, cv2.LINE_AA)
 
 
 # USELESS FOR NOW
@@ -179,7 +181,7 @@ def cal_warning_depth(depth_map):
     return np.mean(
         np.split(depth_map[:, 266:373], 3),
         axis=(1,2) 
-    ), np.mean(depth_map[400:480, 213:426])
+    ), np.mean(depth_map[400:480, 213:426]), np.mean(depth_map[400:480, 266:373])
 
 def cal_depth(bounding_boxes, depth_map):
     depth = []
@@ -319,6 +321,19 @@ def object_position_find_2(bounding_box):
     return object_position
 
 def draw_frame_division(img):
+    #draw text for each box with a white background for text
+    half = int(213/2)
+
+    img = cv2.rectangle(img,(0,0),(half,20),(0,0,255),-1)
+    img = cv2.rectangle(img,(213,0),(int(half*3),20),(0,0,255),-1)
+    img = cv2.rectangle(img,(426,0),(int(half*5),20),(0,0,255),-1)
+    img = cv2.rectangle(img,(0,160),(half,180),(0,0,255),-1)
+    img = cv2.rectangle(img,(213,160),(int(half*3),180),(0,0,255),-1)
+    img = cv2.rectangle(img,(426,160),(int(half*5),180),(0,0,255),-1)
+    img = cv2.rectangle(img,(0,320),(half,340),(0,0,255),-1)
+    img = cv2.rectangle(img,(213,320),(int(half*3),340),(0,0,255),-1)
+    img = cv2.rectangle(img,(426,320),(int(half*5),340),(0,0,255),-1)
+
     #draw box for the frame division with red color
     img = cv2.rectangle(img,(0,0),(213,160),(0,0,255),2)
     img = cv2.rectangle(img,(213,0),(426,160),(0,0,255),2)
@@ -330,16 +345,20 @@ def draw_frame_division(img):
     img = cv2.rectangle(img,(213,320),(426,480),(0,0,255),2)
     img = cv2.rectangle(img,(426,320),(640,480),(0,0,255),2)
 
-    #draw text for each box
-    img = cv2.putText(img,'Top left',(0,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Top mid',(213,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Top right',(426,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Mid left',(0,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Mid mid',(213,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Mid right',(426,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Bottom left',(0,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Bottom mid',(213,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
-    img = cv2.putText(img,'Bottom right',(426,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    #write text for each box
+    img = cv2.putText(img,'Top left',(0,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Top mid',(213,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Top right',(426,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid left',(0,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid mid',(213,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Mid right',(426,175),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom left',(0,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom mid',(213,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Bottom right',(426,335),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2,cv2.LINE_AA)
+
+
+        # cv2.rectangle(image, (x1, y1),
+        #           (x1 + tw, y1 + th), color, -1)
     return img
 
 def draw_position_line(img):
@@ -348,7 +367,7 @@ def draw_position_line(img):
     #draw line from top right to bottom left of the square with the center being the frame center
     img = cv2.line(img,(560,0),(80,480),(0,0,255),2)
     #write top, bottom, left, right text
-    img = cv2.putText(img,'Top',(320,15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+    img = cv2.putText(img,'Top',(320,20),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
     img = cv2.putText(img,'Bottom',(320,465),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
     img = cv2.putText(img,'Left',(0,240),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
     img = cv2.putText(img,'Right',(600,240),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
@@ -398,7 +417,7 @@ def draw_position_line_2(img):
             img = cv2.putText(img,'Top',(23,16+30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
         
         #Write the length of the line from the center of the frame to the center of the object in pixel
-        img = cv2.putText(img,f'Length {np.sqrt((centers[i][0]-320)**2+(centers[i][1]-240)**2):.2f} pixel value',(23,16+15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
+        img = cv2.putText(img,f'Length {np.sqrt((centers[i][0]-320)**2+(centers[i][1]-240)**2):.2f} pixel value',(23,16+20),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2,cv2.LINE_AA)
     return img
 
 def draw_depth_cal(img):
@@ -409,6 +428,10 @@ def draw_depth_cal(img):
     img = cv2.line(img,(266,160),(373,160),(0,255,0),2)
     img = cv2.line(img,(266,320),(373,320),(0,255,0),2)
     img = cv2.line(img,(266,480),(373,480),(0,255,0),2)
+    img = cv2.line(img,(266,400),(373,400),(0,255,0),2)
+
+    #draw a box for the lower half of the bottom mid frame
+    # img = cv2.rectangle(img,(213,(80*5)),(426,480),(0,255,0),2)
     return img
 
 def draw_box_cal(img, bounding_box):
