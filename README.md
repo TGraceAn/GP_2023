@@ -4,8 +4,9 @@
 
 To run this:
 
-/shell python main.py
-
+```shell
+python main.py
+```
 
 ## This is the source code for the Group Project 2023
 ## Project title: Object detection and distance estimation for vision-impaired people
